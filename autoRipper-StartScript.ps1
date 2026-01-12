@@ -14,7 +14,7 @@ $params = @{
 function paramsCheck {
     Write-Host "Starting Script: $($MyInvocation.MyCommand.Name)"
     Write-Host "Current Parameters:"
-    $PSBoundParameters | Out-String | Write-Host
+    $params | Out-String | Write-Host
 }
 
 paramsCheck
@@ -23,14 +23,23 @@ paramsCheck
 # Logging
 # ---------------------------------------------------------------------
 # Set Logfile Location
-$logFile = "$env:USERPROFILE\Documents\DVD_Monitor_Log_dvdDetect.txt"
+$logFile = "$env:USERPROFILE\Documents\autoRipper-StartScript.txt"
+#$logLoc = "$env:USERPROFILE\Documents\"
 
-# Create Function to output Logging to file
+# Generic Write-Log Function for all statements
 function Write-Log {
-    param([string]$message)
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$Message
+    )
+
+    # Note: Ensure $logFile is defined globally or passed in as well
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    "$timestamp - $message" | Out-File -FilePath $logFile -Append
-    Write-Host "$timestamp - $message"
+    $line = "$timestamp $Message"
+
+    # Using -ErrorAction SilentlyContinue in case the file isn't ready
+    Add-Content -Path $logFile -Value $line 
+    Write-Host $line
 }
 
 # ---------------------------------------------------------------------
@@ -85,14 +94,17 @@ while ($true) {
 				$isMediaPresent = $true 
 
                 # Trigger MKV Script
+                Start-Sleep -Seconds 2
                 Write-Log "Starting script for MakeMKV."
-                & "D:\GitHubRepos\AutoRip\autoDVDRipper-Windows\autoRipper-makeMKV.ps1" @params
+                & "$PSScriptRoot\autoRipper-makeMKV.ps1" @params
 				
 				# Trigger MKV Script
+                Start-Sleep -Seconds 2
                 Write-Log "Starting script for Handbrake."
-                & "D:\GitHubRepos\AutoRip\autoDVDRipper-Windows\autoRipper-handbrake.ps1" @params
+                & "$PSScriptRoot\autoRipper-handbrake.ps1" @params
 
-                # Eject Disc after Rip				
+                # Eject Disc after Rip	
+                Start-Sleep -Seconds 2			
                 $shell = New-Object -ComObject Shell.Application
                 $ejectDrive = $shell.Namespace(17).ParseName($params.driveLetter)
                 $ejectDrive.InvokeVerb("Eject")

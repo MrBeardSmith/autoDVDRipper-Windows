@@ -19,62 +19,43 @@ function paramsCheck {
     $PSBoundParameters | Out-String | Write-Host
 }
 
-paramsCheck
+#paramsCheck
 
 # ---------------------------------------------------------------------
 # Logging
 # ---------------------------------------------------------------------
 # Set Logfile Location
-#$logFile = "$env:USERPROFILE\Documents\DVD_Monitor_Log_makeMKV.txt"
-$logLoc = "$env:USERPROFILE\Documents\"
+$logFile = "$env:USERPROFILE\Documents\autoRipper-MakeMKV.txt"
+#$logLoc = "$env:USERPROFILE\Documents\"
 
 # Generic Write-Log Function for all statements
 function Write-Log {
-	$logName = "makeMKV-Full.txt"
-	$logFile = Join-Path $logLoc $logName
-
-    param(
-        [string]$Message,
-        [string]$Color = 'White'
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$Message
     )
 
+    # Note: Ensure $logFile is defined globally or passed in as well
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     $line = "$timestamp $Message"
 
-    Add-Content -Path $logFile -Value $line
-    Write-Host $line -ForegroundColor $Color
+    # Using -ErrorAction SilentlyContinue in case the file isn't ready
+    Add-Content -Path $logFile -Value $line 
+    Write-Host $line
 }
-
-# Generic Write-Log Function for all statements
-function Error-Log {
-	$logName = "makeMKV-Error.txt"
-	$logFile = Join-Path $logLoc $logName
-
-    param(
-        [string]$Message,
-        [string]$Color = 'White'
-    )
-
-    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    $line = "$timestamp $Message"
-
-    Add-Content -Path $logFile -Value $line
-    Write-Host $line -ForegroundColor $Color
-}
-
 # ---------------------------------------------------------------------
 # Validation
 # ---------------------------------------------------------------------
 # Create Destination folder if it doesn't exist
 if (-not (Test-Path -Path $mkvDestination)) {
-    Write-Log "Creating missing directory: $mkvDestination" -color Cyan
+    Write-Log "Creating missing directory: $mkvDestination"
     New-Item -ItemType Directory -Path $mkvDestination | Out-Null
 }
 
 # Validate that the executables exist
 foreach ($path in @($makeMKVExe, $handbrakeExe)) {
     if (-not (Test-Path $path)) {
-        Write-Log "Required executable not found: $path" Red
+        Write-Log "Required executable not found: $path"
         exit 1
     }
 }
@@ -82,10 +63,10 @@ foreach ($path in @($makeMKVExe, $handbrakeExe)) {
 # ---------------------------------------------------------------------
 # Start Script
 # ---------------------------------------------------------------------
-Write-Log "Starting MakeMKV script for disc [$discName]" -color Green
+Write-Log "Starting MakeMKV script for disc [$discName]"
 
 # Rip Starting
-Write-Log "--- Starting Rip for: $mkvDestination ---" -color Yellow
+Write-Log "--- Starting Rip for: $mkvDestination ---"
 
 # 1. Execute MakeMKV using the passed variables
 # Syntax: makemkvcon [mode] [source] [title] [destination]
@@ -94,7 +75,7 @@ Write-Log "--- Starting Rip for: $mkvDestination ---" -color Yellow
 
 # 2. Rename files upon success
 if ($LASTEXITCODE -eq 0) {
-    Write-Log "Rip Complete. Starting rename process..." -color Green
+    Write-Log "Rip Complete. Starting rename process..."
     
     # Get all MKV files created in the destination
     $files = Get-ChildItem -Path $mkvDestination -Filter *.mkv
@@ -103,7 +84,7 @@ if ($LASTEXITCODE -eq 0) {
     foreach ($file in $files) {
         # Format: VolumeName_01.mkv, VolumeName_02.mkv, etc.
         $newName = "{0}_{1:D2}.mkv" -f $discName, $count
-        $newPath = Join-Path $mkvDestination $newName
+        #$newPath = Join-Path $mkvDestination $newName
         
         Rename-Item -Path $file.FullName -NewName $newName
         Write-Log "Renamed $($file.Name) to $newName"
@@ -113,6 +94,6 @@ if ($LASTEXITCODE -eq 0) {
 
 # If MKV Exit code is not a successful run, exit script with error
 else {
-    Write-Log "--- Rip FAILED with Exit Code $LASTEXITCODE ---" -color Red
-	Error-Log "--- Rip FAILED with Exit Code $LASTEXITCODE ---" -color Red
+    Write-Log "--- Rip FAILED with Exit Code $LASTEXITCODE ---"
+	#FailLog "--- Rip FAILED with Exit Code $LASTEXITCODE ---"
 }

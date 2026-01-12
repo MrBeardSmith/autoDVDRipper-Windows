@@ -26,47 +26,29 @@ function paramsCheck {
     $PSBoundParameters | Out-String | Write-Host
 }
 
-paramsCheck
+#paramsCheck
 
 # ---------------------------------------------------------------------
 # Logging
 # ---------------------------------------------------------------------
 # Set Logfile Location
-#$logFile = "$env:USERPROFILE\Documents\DVD_Monitor_Log_makeMKV.txt"
-$logLoc = "$env:USERPROFILE\Documents\"
+$logFile = "$env:USERPROFILE\Documents\autoRipper-HandBrake.txt"
+#$logLoc = "$env:USERPROFILE\Documents\"
 
 # Generic Write-Log Function for all statements
 function Write-Log {
-	$logName = "makeMKV-Full.txt"
-	$logFile = Join-Path $logLoc $logName
-
-    param(
-        [string]$Message,
-        [string]$Color = 'White'
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$Message
     )
 
+    # Note: Ensure $logFile is defined globally or passed in as well
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     $line = "$timestamp $Message"
 
-    Add-Content -Path $logFile -Value $line
-    Write-Host $line -ForegroundColor $Color
-}
-
-# Generic Write-Log Function for all statements
-function Error-Log {
-	$logName = "makeMKV-Error.txt"
-	$logFile = Join-Path $logLoc $logName
-
-    param(
-        [string]$Message,
-        [string]$Color = 'White'
-    )
-
-    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    $line = "$timestamp $Message"
-
-    Add-Content -Path $logFile -Value $line
-    Write-Host $line -ForegroundColor $Color
+    # Using -ErrorAction SilentlyContinue in case the file isn't ready
+    Add-Content -Path $logFile -Value $line 
+    Write-Host $line
 }
 
 Write-Log "The handbrake script has started"
@@ -89,7 +71,7 @@ foreach ($file in $files) {
     Write-Log "Processing: $($file.Name) -> $outputFile"
 	
     # HandBrakeCLI Arguments
-    & $handbrakeExe -i "$($file.FullName)" -o "$outputFile" --preset-import-file "D:\Handbrake\Scripts\presets.json" --preset "Plex Preset"
+    & $handbrakeExe -i "$($file.FullName)" -o "$outputFile" --preset-import-file "D:\GitHubRepos\AutoRip\autoDVDRipper-Windows\presets.json" --preset "Plex Preset"
     }
 
 Write-Host "All files processed!"
