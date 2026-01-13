@@ -9,23 +9,16 @@
     [string]$discName
 )
 
-# ---------------------------------------------------------------------
-# Debug Functions
-# ---------------------------------------------------------------------
-# Create function to run a Parameters check
-function paramsCheck {
-    Write-Host "Starting Script: $($MyInvocation.MyCommand.Name)"
-    Write-Host "Current Parameters:"
-    $PSBoundParameters | Out-String | Write-Host
-}
+# 1. Load your external function into the current session
+. "$PSScriptRoot\autoRipper-Setup.ps1"
 
-#paramsCheck
+DataChecker
 
 # ---------------------------------------------------------------------
 # Logging
 # ---------------------------------------------------------------------
 # Set Logfile Location
-$logFile = "$env:USERPROFILE\Documents\autoRipper-MakeMKV.txt"
+$logFile = "$PSScriptRoot\autoRipper-MakeMKV.txt"
 #$logLoc = "$env:USERPROFILE\Documents\"
 
 # Generic Write-Log Function for all statements

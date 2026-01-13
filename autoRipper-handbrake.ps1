@@ -1,11 +1,4 @@
-﻿#param(
-#    [string]$handbrakeExe,   # Expects "D:\Handbrake\HandBrakeCLI.exe"
-#    [string]$mp4Destination,   # Expects the mp4 disc folder path
-#    [string]$mkvDestination,   # Expects the mkv disc folder path
-#    [string]$discName
-#)
-
-param(
+﻿param(
     [string]$driveLetter,       # Expects "J:"    
     [string]$makeMKVExe,   # Expects "D:\MakeMKV2\makemkvcon64.exe"
     [string]$handbrakeExe,   # Expects "D:\Handbrake\HandBrakeCLI.exe"
@@ -16,23 +9,16 @@ param(
     [string]$discName
 )
 
-# ---------------------------------------------------------------------
-# Debug Functions
-# ---------------------------------------------------------------------
-# Create function to run a Parameters check
-function paramsCheck {
-    Write-Host "Starting Script: $($MyInvocation.MyCommand.Name)"
-    Write-Host "Current Parameters:"
-    $PSBoundParameters | Out-String | Write-Host
-}
+# 1. Load your external function into the current session
+. "$PSScriptRoot\autoRipper-Setup.ps1"
 
-#paramsCheck
+DataChecker
 
 # ---------------------------------------------------------------------
 # Logging
 # ---------------------------------------------------------------------
 # Set Logfile Location
-$logFile = "$env:USERPROFILE\Documents\autoRipper-HandBrake.txt"
+$logFile = "$PSScriptRoot\autoRipper-HandBrake.txt"
 #$logLoc = "$env:USERPROFILE\Documents\"
 
 # Generic Write-Log Function for all statements

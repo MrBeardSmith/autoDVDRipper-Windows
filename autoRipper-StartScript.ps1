@@ -1,29 +1,13 @@
-﻿# Configuration
-$params = @{
-    driveLetter    = "J:"
-    makeMKVExe     = "D:\MakeMKV2\makemkvcon64.exe"
-    handbrakeExe   = "D:\Handbrake\HandBrakeCLI.exe"
-    mkvFileDir     = "P:\!unEncoded"
-    mp4FileDir     = "P:\Movies"
-}
+﻿# 1. Load your external function into the current session
+. "$PSScriptRoot\autoRipper-Setup.ps1"
 
-# ---------------------------------------------------------------------
-# Debug Functions
-# ---------------------------------------------------------------------
-# Create function to run a Parameters check
-function paramsCheck {
-    Write-Host "Starting Script: $($MyInvocation.MyCommand.Name)"
-    Write-Host "Current Parameters:"
-    $params | Out-String | Write-Host
-}
-
-paramsCheck
+DataChecker
 
 # ---------------------------------------------------------------------
 # Logging
 # ---------------------------------------------------------------------
 # Set Logfile Location
-$logFile = "$env:USERPROFILE\Documents\autoRipper-StartScript.txt"
+$logFile = "$PSScriptRoot\autoRipper-StartScript.txt"
 #$logLoc = "$env:USERPROFILE\Documents\"
 
 # Generic Write-Log Function for all statements
@@ -63,6 +47,10 @@ while ($true) {
         if ($null -ne $drive.VolumeName) {
 		
             if (-not $isMediaPresent) {
+
+# ---------------------------------------------------------------------
+# Disc Check and final Param 
+# ---------------------------------------------------------------------
                 $discName = $drive.VolumeName
                 $params.discName = $drive.VolumeName
                 Write-Log "Disc detected in $($params.driveLetter) ($discName)"
@@ -76,6 +64,7 @@ while ($true) {
 				$params.mp4Destination = $mp4Destination
                 
                 # Notification logic
+                # Beep when disc is detected
                 [System.Console]::Beep(1000, 200)
                 [System.Console]::Beep(1200, 200)
                 Add-Type -AssemblyName System.Windows.Forms
@@ -85,23 +74,40 @@ while ($true) {
                 $notification.BalloonTipText = "Calling MakeMKV Script to save to $mkvDestination"
                 $notification.Visible = $true
                 $notification.ShowBalloonTip(5000)
-                
-                
-                # Parameters check for debugging
-                paramsCheck
-											        
+					        
 				# State Check for Media
+                # Now that a disc is detected, flip this flag to true
 				$isMediaPresent = $true 
 
-                # Trigger MKV Script
-                Start-Sleep -Seconds 2
+# ---------------------------------------------------------------------
+# MakeMKV
+# ---------------------------------------------------------------------
                 Write-Log "Starting script for MakeMKV."
+
+                # Trigger MKV Script 
+                # This script needs everything to wait so it is not ran as a job
                 & "$PSScriptRoot\autoRipper-makeMKV.ps1" @params
 				
-				# Trigger MKV Script
-                Start-Sleep -Seconds 2
+# ---------------------------------------------------------------------
+# HandBrake
+# ---------------------------------------------------------------------
                 Write-Log "Starting script for Handbrake."
-                & "$PSScriptRoot\autoRipper-handbrake.ps1" @params
+
+                # Create Handbrake Script pathing. Not sure why I can't use directly in job but /shrug
+                $handBPath = Join-Path -Path $PSScriptRoot -ChildPath "autoRipper-handbrake.ps1"
+
+             	# Create Handbrake Job
+                # This script can run async so execute as a job
+                $Job = Start-ThreadJob -ScriptBlock {
+
+                    # Call handbrake.ps1 script to execute
+                    & @using:handBPath -ArgumentList @using:params
+                
+                }
+
+# ---------------------------------------------------------------------
+# Eject Disc
+# ---------------------------------------------------------------------
 
                 # Eject Disc after Rip	
                 Start-Sleep -Seconds 2			
@@ -113,6 +119,11 @@ while ($true) {
                 $notification.Dispose()
             }
         }
+
+# ---------------------------------------------------------------------
+# After Disc Eject, clean-up
+# ---------------------------------------------------------------------
+
         else {
             if ($isMediaPresent) {
                 Write-Log "Disc removed from $($params.driveLetter)."
@@ -122,9 +133,28 @@ while ($true) {
                 $params.Remove("mkvDestination")
                 $params.Remove("mp4Destination")
                 $params.Remove("discName")
+                
+                # Create a list of all jobs and output after each Rip
+                $CurrentJobs = Get-Job | Select-Object ID, Name, State, PSBeginTime, Command | Format-Table -AutoSize
+                Write-Log "Here are the jobs that currently exist: $CurrentJobs"
+
+                # Every time a disc is finished ripping, check if any HandBJobs are 'done' then remove them
+                $FinishedJobs = Get-Job | Where-Object { $_.State -in 'Completed', 'Failed', 'Stopped' }    
+                if ($FinishedJobs) {
+                    foreach ($Job in $FinishedJobs) {
+                        $Output = Receive-Job -Job $Job  # Capture output before it's gone!
+                        Write-Host "Cleaned up Job $($Job.Id). Result: $Output" -ForegroundColor Gray
+                        Remove-Job -Job $Job
+                    }
+                }
             }
         }
     }
+
+# ---------------------------------------------------------------------
+# Error Catch
+# ---------------------------------------------------------------------
+
     catch {
         Write-Log "Error checking drive: $($_.Exception.Message)"
     }
