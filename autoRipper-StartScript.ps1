@@ -1,6 +1,7 @@
 ﻿# 1. Load your external function into the current session
 . "$PSScriptRoot\autoRipper-Setup.ps1"
 
+# 1.a Log current parameters
 DataChecker
 
 # ---------------------------------------------------------------------
@@ -8,7 +9,6 @@ DataChecker
 # ---------------------------------------------------------------------
 # Set Logfile Location
 $logFile = "$PSScriptRoot\autoRipper-StartScript.txt"
-#$logLoc = "$env:USERPROFILE\Documents\"
 
 # Generic Write-Log Function for all statements
 function Write-Log {
@@ -106,6 +106,23 @@ while ($true) {
                 }
 
 # ---------------------------------------------------------------------
+# File Validation and Folder Sorting
+# ---------------------------------------------------------------------
+                Write-Log "Starting script for File Validation."
+
+                # Create Handbrake Script pathing. Not sure why I can't use directly in job but /shrug
+                $fileValPath = Join-Path -Path $PSScriptRoot -ChildPath "autoRipper-cleanUp.ps1"
+
+             	# Create Handbrake Job
+                # This script can run async so execute as a job
+                $Job = Start-ThreadJob -ScriptBlock {
+
+                    # Call handbrake.ps1 script to execute
+                    & @using:fileValPath -ArgumentList @using:params
+                
+                }
+
+# ---------------------------------------------------------------------
 # Eject Disc
 # ---------------------------------------------------------------------
 
@@ -133,20 +150,6 @@ while ($true) {
                 $params.Remove("mkvDestination")
                 $params.Remove("mp4Destination")
                 $params.Remove("discName")
-                
-                # Create a list of all jobs and output after each Rip
-                $CurrentJobs = Get-Job | Select-Object ID, Name, State, PSBeginTime, Command | Format-Table -AutoSize
-                Write-Log "Here are the jobs that currently exist: $CurrentJobs"
-
-                # Every time a disc is finished ripping, check if any HandBJobs are 'done' then remove them
-                $FinishedJobs = Get-Job | Where-Object { $_.State -in 'Completed', 'Failed', 'Stopped' }    
-                if ($FinishedJobs) {
-                    foreach ($Job in $FinishedJobs) {
-                        $Output = Receive-Job -Job $Job  # Capture output before it's gone!
-                        Write-Host "Cleaned up Job $($Job.Id). Result: $Output" -ForegroundColor Gray
-                        Remove-Job -Job $Job
-                    }
-                }
             }
         }
     }
@@ -159,5 +162,24 @@ while ($true) {
         Write-Log "Error checking drive: $($_.Exception.Message)"
     }
 
-    Start-Sleep -Seconds 5
+
+# ---------------------------------------------------------------------
+# Loop and Clea-up
+# ---------------------------------------------------------------------
+    Start-Sleep -Seconds 10
+
+    # Check if any HandBJobs are 'done' then remove them
+    $FinishedJobs = Get-Job | Where-Object { $_.State -in 'Completed', 'Failed', 'Stopped' }
+    $CurrentJobs = Get-Job | Select-Object ID, Name, State
+    
+    if ($FinishedJobs) {
+        foreach ($Job in $FinishedJobs) {
+            $Output = Receive-Job -Job $Job  # Capture output before it's gone!
+            Write-Host "Cleaned up Job $($Job.Id). Result: $Output" -ForegroundColor Gray
+            Remove-Job -Job $Job
+        }
+    else {
+        $CurrentJobs | Format-Table -AutoSize
+    }
+}
 }

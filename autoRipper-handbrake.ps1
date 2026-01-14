@@ -12,6 +12,7 @@
 # 1. Load your external function into the current session
 . "$PSScriptRoot\autoRipper-Setup.ps1"
 
+# 1.a Log current parameters
 DataChecker
 
 # ---------------------------------------------------------------------
@@ -19,7 +20,6 @@ DataChecker
 # ---------------------------------------------------------------------
 # Set Logfile Location
 $logFile = "$PSScriptRoot\autoRipper-HandBrake.txt"
-#$logLoc = "$env:USERPROFILE\Documents\"
 
 # Generic Write-Log Function for all statements
 function Write-Log {
