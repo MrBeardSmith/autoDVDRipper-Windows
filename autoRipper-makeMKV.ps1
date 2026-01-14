@@ -19,7 +19,6 @@ DataChecker
 # ---------------------------------------------------------------------
 # Set Logfile Location
 $logFile = "$PSScriptRoot\autoRipper-MakeMKV.txt"
-#$logLoc = "$env:USERPROFILE\Documents\"
 
 # Generic Write-Log Function for all statements
 function Write-Log {
