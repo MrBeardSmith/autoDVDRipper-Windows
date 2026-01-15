@@ -99,6 +99,6 @@ if ($LASTEXITCODE -eq 0) {
 # If MKV Exit code is not a successful run, exit script with error
 else {
     Write-Log "--- Rip FAILED with Exit Code $LASTEXITCODE ---"
-	FailureLog "--- Rip FAILED with Exit Code $LASTEXITCODE --- 'n --- Rip FAILED for $mkvDestination---"
+	FailureLog " --- Rip FAILED with Exit Code $LASTEXITCODE --- `n --- Rip FAILED for $mkvDestination--- "
     # --TODO-- Output volumeName so you can tell which DVD failed later
 }

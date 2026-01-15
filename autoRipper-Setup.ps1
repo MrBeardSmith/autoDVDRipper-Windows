@@ -5,6 +5,7 @@ $params = @{
     handbrakeExe   = "D:\Handbrake\HandBrakeCLI.exe"
     mkvFileDir     = "P:\!unEncoded"
     mp4FileDir     = "P:\Movies"
+    encodePreset   = "$PSScriptRoot\presets.json"
 }
 
 # ---------------------------------------------------------------------

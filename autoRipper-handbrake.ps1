@@ -72,7 +72,7 @@ foreach ($file in $files) {
     Write-Log "Processing: $($file.Name) -> $outputFile"
 	
     # HandBrakeCLI Arguments
-    & $handbrakeExe -i "$($file.FullName)" -o "$outputFile" --preset-import-file "D:\GitHubRepos\AutoRip\autoDVDRipper-Windows\presets.json" --preset "Plex Preset"
+    & $handbrakeExe -i "$($file.FullName)" -o "$outputFile" --preset-import-file "$encodePreset" --preset "Plex Preset"
     }
 
 Write-Log "All files encoded!"
@@ -98,9 +98,10 @@ if ((Test-Path $mkvDestination) -and (Test-Path $mp4Destination)) {
 
     # Check count matches
     if ($mkvCount -eq $mp4Count) {
-        Write-Log "Counts match. Deleting source folder..."
+        Write-Log "Counts match. Deleting source folder: $mkvDestination"
         Remove-Item -Path $mkvDestination -Recurse -Force
         Write-Log "Cleanup complete."
+    } else {
         $Difference = [Math]::Abs($mkvCount - $mp4Count)
         FailureLog "Warning: File counts do NOT match! Difference: $Difference"
         exit
