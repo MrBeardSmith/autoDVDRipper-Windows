@@ -19,7 +19,8 @@ DataChecker
 # Logging
 # ---------------------------------------------------------------------
 # Set Logfile Location
-$logFile = "$PSScriptRoot\autoRipper-cleanUp.txt"
+$logFile = "$PSScriptRoot\Log\autoRipper-cleanUp.txt"
+$logFileFailure = "$PSScriptRoot\Log\autoRipper-cleanUp-Failure.txt"
 
 # Generic Write-Log Function for all statements
 function Write-Log {
@@ -27,14 +28,24 @@ function Write-Log {
         [Parameter(Mandatory=$true)]
         [string]$Message
     )
-
-    # Note: Ensure $logFile is defined globally or passed in as well
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     $line = "$timestamp $Message"
-
-    # Using -ErrorAction SilentlyContinue in case the file isn't ready
     Add-Content -Path $logFile -Value $line 
     Write-Host $line
+}
+
+
+# Failure Log Function for all failures to manually research
+function FailureLog {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$Message
+    )
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    $line = "$timestamp $Message"
+    Add-Content -Path $logFileFailure -Value $line 
+    Write-Log $line
+    Write-Error $line
 }
 
 # ---------------------------------------------------------------------

@@ -27,7 +27,7 @@ function DataChecker {
 
 DataChecker
 
-# ---------------------------------------------------------------------
+<# # ---------------------------------------------------------------------
 # Validation Functions
 # ---------------------------------------------------------------------
 # Validate that the executables exist
@@ -41,23 +41,16 @@ function ExeCheck {
 }
 
 ExeCheck
+ #>
+ 
+<# 
 
-<# # ---------------------------------------------------------------------
+# ---------------------------------------------------------------------
 # Logging
 # ---------------------------------------------------------------------
-# Set Logfile Location
-$logDir = "$env:USERPROFILE\Documents\"
-
-$callerPath = $MyInvocation.ScriptName
-$fileName = Split-Path -Leaf $callerPath
-$logLocation = Join-Path $logDir $fileName
-
-Get-Item $logLocation | Rename-Item -NewName { $_.BaseName + ".log" }
-
-if (-not (Test-Path -Path $logLocation)) {
-    Write-Log "Creating missing directory: $mkvDestination"
-    New-Item -ItemType Directory -Path $mkvDestination | Out-Null
-}
+# --TODO-- change Write-Log to accept a parameter about severity so it can handle all message types accordingly
+# --TODO-- set up a statement to get current file name so this can be called anywhere
+# --TODO-- set up a logic loop to make the logs into .log instead of .txt
 
 # Generic Write-Log Function for all statements
 function Write-Log {
@@ -65,12 +58,23 @@ function Write-Log {
         [Parameter(Mandatory=$true)]
         [string]$Message
     )
-
-    # Note: Ensure $logFile is defined globally or passed in as well
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     $line = "$timestamp $Message"
-
-    # Using -ErrorAction SilentlyContinue in case the file isn't ready
     Add-Content -Path $logFile -Value $line 
     Write-Host $line
-} #>
+}
+
+
+function FailureLog {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$Message
+    )
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    $line = "$timestamp $Message"
+    Add-Content -Path $logFileFailure -Value $line 
+    Write-Log $line
+    Write-Error $line
+}
+
+#>

@@ -4,3 +4,5 @@ autoRipper-StartScript2.ps1
 autoRipper-StartScript.txt
 autoRipper-MakeMKV.txt
 autoRipper-HandBrake.txt
+Log/autoRipper-HandBrake-Failure.txt
+Log/autoRipper-MakeMKV-Failure.txt

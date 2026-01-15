@@ -18,7 +18,8 @@ DataChecker
 # Logging
 # ---------------------------------------------------------------------
 # Set Logfile Location
-$logFile = "$PSScriptRoot\autoRipper-MakeMKV.txt"
+$logFile = "$PSScriptRoot\Log\autoRipper-MakeMKV.txt"
+$logFileFailure = "$PSScriptRoot\Log\autoRipper-MakeMKV-Failure.txt"
 
 # Generic Write-Log Function for all statements
 function Write-Log {
@@ -26,15 +27,26 @@ function Write-Log {
         [Parameter(Mandatory=$true)]
         [string]$Message
     )
-
-    # Note: Ensure $logFile is defined globally or passed in as well
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     $line = "$timestamp $Message"
-
-    # Using -ErrorAction SilentlyContinue in case the file isn't ready
     Add-Content -Path $logFile -Value $line 
     Write-Host $line
 }
+
+
+# Failure Log Function for all failures to manually research
+function FailureLog {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$Message
+    )
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    $line = "$timestamp $Message"
+    Add-Content -Path $logFileFailure -Value $line 
+    Write-Log $line
+    Write-Error $line
+}
+
 # ---------------------------------------------------------------------
 # Validation
 # ---------------------------------------------------------------------
@@ -87,5 +99,6 @@ if ($LASTEXITCODE -eq 0) {
 # If MKV Exit code is not a successful run, exit script with error
 else {
     Write-Log "--- Rip FAILED with Exit Code $LASTEXITCODE ---"
-	#FailLog "--- Rip FAILED with Exit Code $LASTEXITCODE ---"
+	FailureLog "--- Rip FAILED with Exit Code $LASTEXITCODE --- 'n --- Rip FAILED for $mkvDestination---"
+    # --TODO-- Output volumeName so you can tell which DVD failed later
 }
