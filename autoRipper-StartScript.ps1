@@ -8,7 +8,8 @@ DataChecker
 # Logging
 # ---------------------------------------------------------------------
 # Set Logfile Location
-$logFile = "$PSScriptRoot\autoRipper-StartScript.txt"
+$logFile = "$PSScriptRoot\Log\autoRipper-StartScript.txt"
+$logFileFailure = "$PSScriptRoot\Log\autoRipper-StartScript-Failure.txt"
 
 # Generic Write-Log Function for all statements
 function Write-Log {
@@ -16,14 +17,24 @@ function Write-Log {
         [Parameter(Mandatory=$true)]
         [string]$Message
     )
-
-    # Note: Ensure $logFile is defined globally or passed in as well
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     $line = "$timestamp $Message"
-
-    # Using -ErrorAction SilentlyContinue in case the file isn't ready
     Add-Content -Path $logFile -Value $line 
     Write-Host $line
+}
+
+
+# Failure Log Function for all failures to manually research
+function FailureLog {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$Message
+    )
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    $line = "$timestamp $Message"
+    Add-Content -Path $logFileFailure -Value $line 
+    Write-Log $line
+    Write-Error $line
 }
 
 # ---------------------------------------------------------------------
@@ -41,7 +52,6 @@ Write-Log "--- Polling Monitor Started for $($params.driveLetter) ---"
 # Check specified drive every 5 seconds
 while ($true) {
     try {
-        # Fixed: Using sub-expression for the drive letter in the query
         $drive = Get-CimInstance -Query "SELECT * FROM Win32_LogicalDisk WHERE DeviceID = '$($params.driveLetter)'"
 		
         if ($null -ne $drive.VolumeName) {
@@ -85,7 +95,7 @@ while ($true) {
                 Write-Log "Starting script for MakeMKV."
 
                 # Trigger MKV Script 
-                # This script needs everything to wait so it is not ran as a job
+                # This script needs everything to wait, so it is not ran as a Threadjob
                 & "$PSScriptRoot\autoRipper-makeMKV.ps1" @params
 				
 # ---------------------------------------------------------------------
@@ -97,30 +107,13 @@ while ($true) {
                 $handBPath = Join-Path -Path $PSScriptRoot -ChildPath "autoRipper-handbrake.ps1"
 
              	# Create Handbrake Job
-                # This script can run async so execute as a job
+                # This script can run async so execute as a Threadjob
                 $Job = Start-ThreadJob -ScriptBlock {
 
                     # Call handbrake.ps1 script to execute
                     & @using:handBPath -ArgumentList @using:params
                 
-                }
-
-# ---------------------------------------------------------------------
-# File Validation and Folder Sorting
-# ---------------------------------------------------------------------
-                Write-Log "Starting script for File Validation."
-
-                # Create Handbrake Script pathing. Not sure why I can't use directly in job but /shrug
-                $fileValPath = Join-Path -Path $PSScriptRoot -ChildPath "autoRipper-cleanUp.ps1"
-
-             	# Create Handbrake Job
-                # This script can run async so execute as a job
-                $Job = Start-ThreadJob -ScriptBlock {
-
-                    # Call handbrake.ps1 script to execute
-                    & @using:fileValPath -ArgumentList @using:params
-                
-                }
+                }           
 
 # ---------------------------------------------------------------------
 # Eject Disc
@@ -162,24 +155,21 @@ while ($true) {
         Write-Log "Error checking drive: $($_.Exception.Message)"
     }
 
-
-# ---------------------------------------------------------------------
-# Loop and Clea-up
-# ---------------------------------------------------------------------
     Start-Sleep -Seconds 10
-
+# ---------------------------------------------------------------------
+# Loop and Job Tear-Down
+# ---------------------------------------------------------------------
     # Check if any HandBJobs are 'done' then remove them
     $FinishedJobs = Get-Job | Where-Object { $_.State -in 'Completed', 'Failed', 'Stopped' }
     $CurrentJobs = Get-Job | Select-Object ID, Name, State
     
     if ($FinishedJobs) {
         foreach ($Job in $FinishedJobs) {
-            $Output = Receive-Job -Job $Job  # Capture output before it's gone!
-            Write-Host "Cleaned up Job $($Job.Id). Result: $Output" -ForegroundColor Gray
+            Write-Log "Cleaned up Job $($Job.Id)."
             Remove-Job -Job $Job
-        }
+        } 
+    }
     else {
         $CurrentJobs | Format-Table -AutoSize
     }
-}
 }

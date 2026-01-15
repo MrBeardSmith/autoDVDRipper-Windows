@@ -1,4 +1,0 @@
-2026-01-13 10:05:09 The handbrake script has started
-2026-01-13 10:05:09 File count for P:\!unEncoded\DAYSTHUN = 2
-2026-01-13 10:05:09 Processing: DAYSTHUN_01.mkv -> P:\Movies\DAYSTHUN\DAYSTHUN_01.mp4
-2026-01-13 10:11:39 Processing: DAYSTHUN_02.mkv -> P:\Movies\DAYSTHUN\DAYSTHUN_02.mp4
