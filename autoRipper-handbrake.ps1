@@ -72,7 +72,7 @@ foreach ($file in $files) {
     Write-Log "Processing: $($file.Name) -> $outputFile"
 	
     # HandBrakeCLI Arguments
-    & $handbrakeExe -i "$($file.FullName)" -o "$outputFile" --preset-import-file "$encodePreset" --preset "Plex Preset"
+    & $handbrakeExe -i "$($file.FullName)" -o "$outputFile" --preset-import-file "D:\GitHubRepos\AutoRip\autoDVDRipper-Windows\presets.json" --preset "Plex Preset"
     }
 
 Write-Log "All files encoded!"
