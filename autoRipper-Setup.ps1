@@ -4,8 +4,8 @@ $params = @{
     makeMKVExe     = "D:\MakeMKV2\makemkvcon64.exe"
     handbrakeExe   = "D:\Handbrake\HandBrakeCLI.exe"
     mkvFileDir     = "P:\!unEncoded"
-    mp4FileDir     = "P:\Movies"
-    encodePreset   = "$PSScriptRoot\presets.json"
+    mp4FileDir     = "P:\!encodedHolding"
+    #encodePreset   = "$PSScriptRoot\presets.json"
 }
 
 # ---------------------------------------------------------------------
@@ -26,9 +26,9 @@ function DataChecker {
     $params.Remove("fileName")
 }
 
-DataChecker
+<# 
 
-<# # ---------------------------------------------------------------------
+# ---------------------------------------------------------------------
 # Validation Functions
 # ---------------------------------------------------------------------
 # Validate that the executables exist
@@ -40,10 +40,12 @@ function ExeCheck {
         }
     }
 }
-
+    
 ExeCheck
- #>
- 
+
+#>
+
+
 <# 
 
 # ---------------------------------------------------------------------
@@ -51,7 +53,6 @@ ExeCheck
 # ---------------------------------------------------------------------
 # --TODO-- change Write-Log to accept a parameter about severity so it can handle all message types accordingly
 # --TODO-- set up a statement to get current file name so this can be called anywhere
-# --TODO-- set up a logic loop to make the logs into .log instead of .txt
 
 # Generic Write-Log Function for all statements
 function Write-Log {

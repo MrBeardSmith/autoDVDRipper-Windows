@@ -75,7 +75,7 @@ Write-Log "--- Starting Rip for: $mkvDestination ---"
 # 1. Execute MakeMKV using the passed variables
 # Syntax: makemkvcon [mode] [source] [title] [destination]
 # Call exe, create mkv file, use specified drive, all files on disk, output to destination, high verbose
-& $makeMKVExe mkv "dev:$driveLetter" all "$mkvDestination" --robot 
+& $makeMKVExe mkv "dev:$driveLetter" all "$mkvDestination" --minlength=30 --robot 
 
 # 2. Rename files upon success
 if ($LASTEXITCODE -eq 0) {
