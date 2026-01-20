@@ -1,8 +1,11 @@
 # 1. Configuration
-$ApiKey = '823afd74b1afc3240d4a135c5f88f29b'
-$ParentFolder = 'P:\!encodedHolding'
+# oad your external function into the current session
+. "$PSScriptRoot\nameChecker.ps1"
+
 #$VolumeName = "Monty Python and the Holy Grail" # Example DVD Volume Name
 $Results = @()
+
+D:\GitHubRepos\AutoRip\autoDVDRipper-Windows\MovieNameChecker\nameChecker.ps1
 
 # 2. Get all folders in the directory
 $Folders = Get-ChildItem -Path $ParentFolder -Directory
